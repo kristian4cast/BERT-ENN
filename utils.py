@@ -6,7 +6,7 @@ import torch
 import torch.utils.data
 from torch import nn
 
-import torchtext.data
+
 import torchtext.datasets
 
 from sklearn.datasets import fetch_20newsgroups
@@ -14,7 +14,15 @@ from sklearn.metrics import precision_recall_curve, f1_score, auc, roc_curve, ro
 from sklearn.model_selection import train_test_split
 
 
-def load_dataset(dataset):
+def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True):
+    sentences, labels  = np.array([[label, sentence] for label, sentence in torch_dataset_iterator]).T
+    if labels_to_int:
+        labels = np.array(labels, dtype=int)
+    print(f"{sentences[:3]=}, {labels[:3]=}")
+    return labels, sentences
+
+
+def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     train_sentences = None
     val_sentences = None
@@ -46,11 +54,12 @@ def load_dataset(dataset):
 
     if dataset == 'trec':
         # set up fields
-        TEXT = torchtext.data.Field(pad_first=True, lower=True)
-        LABEL = torchtext.data.Field(sequential=False)
+        # TEXT = torchtext.data.Field(pad_first=True, lower=True)
+        # LABEL = torchtext.data.Field(sequential=False)
 
         # make splits for data
-        train, test = torchtext.datasets.TREC.splits(TEXT, LABEL, fine_grained=True)
+        train, test = TREC(split=('train', 'test'))
+        # train, test = torchtext.datasets.TREC.splits(TEXT, LABEL, fine_grained=True)
 
         train_text = []
         train_label = []
@@ -87,21 +96,12 @@ def load_dataset(dataset):
         test_labels =le.transform(test_labels)
 
     if dataset == 'sst':
-        df_train = pd.read_csv("./dataset/sst/SST-2/train.tsv", delimiter='\t', header=0)
-
-        df_train = df_train.groupby('label').sample(10000)
-
-        df_val = pd.read_csv("./dataset/sst/SST-2/dev.tsv", delimiter='\t', header=0)
-
-        df_test = pd.read_csv("./dataset/sst/SST-2/sst-test.tsv", delimiter='\t', header=None,
-                              names=['sentence', 'label'])
-
-        train_sentences = df_train.sentence.values
-        val_sentences = df_val.sentence.values
-        test_sentences = df_test.sentence.values
-        train_labels = df_train.label.values
-        val_labels = df_val.label.values
-        test_labels = df_test.label.values
+        train_iter, valid_iter = torchtext.datasets.SST2(root='.data', split=('train', 'dev'))
+        train_iter = [x for x in train_iter]
+        test_iter, train_iter = train_iter[:2000], train_iter[2000:]
+        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
+        val_labels, val_sentences = unpack_torchdatasets_subset(valid_iter)
+        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
 
     ##  Training OOD dataset ##
 
@@ -150,18 +150,18 @@ def load_dataset(dataset):
 
     ###  2. IMDB #
     if dataset == 'imdb':
+        test_iter = torchtext.datasets.IMDB(root=cache_dir, split=('test'))
+        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
 
-        df_test = pd.read_csv("./dataset/imdb/imdb.csv", delimiter=',', header=0)
-        df_test = df_test.sample(5000)  # TODO
-        df_test.sentiment = df_test.sentiment.map({'positive': 0, 'negative': 1})
+        # df_test = pd.read_csv("./dataset/imdb/imdb.csv", delimiter=',', header=0)
+        # df_test = df_test.sample(5000)  # TODO
+        # df_test.sentiment = df_test.sentiment.map({'positive': 0, 'negative': 1})
 
         train_sentences = None
         val_sentences = None
-        test_sentences = df_test.review.values
 
         train_labels = None
         val_labels = None
-        test_labels = df_test.sentiment.values
 
     ###  3. Multi30K #
     if dataset == 'multi30k':

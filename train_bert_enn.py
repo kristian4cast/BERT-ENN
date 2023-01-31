@@ -39,6 +39,7 @@ def main():
     parser.add_argument('--MAX_LEN', type=int, default=150)
     parser.add_argument("--base_rate", default=5, type=int, help="base rate N:1")
     parser.add_argument('--recall_level', type=float, default=0.9)
+    parser.add_argument('--dir_dataset', type=str, default='dataset/')
     args = parser.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -61,7 +62,7 @@ def main():
         print(record, file=file)
 
     print('Loading saved dataset checkpoints for training...')
-    dataset_dir = 'dataset/{}'.format(args.dataset)
+    dataset_dir = os.path.join(args.dir_dataset, args.dataset)
     train_data = torch.load(dataset_dir + '/train.pt')
     validation_data = torch.load(dataset_dir + '/val.pt')
     prediction_data = torch.load(dataset_dir + '/test.pt')
@@ -75,10 +76,12 @@ def main():
     prediction_sampler = SequentialSampler(prediction_data)
     prediction_dataloader = DataLoader(prediction_data, sampler=prediction_sampler, batch_size=args.eval_batch_size)
 
-    ood_data = torch.load('dataset/wikitext2.pt')
+    ood_dataset_path = os.path.join(args.dir_dataset, "wikitext2.pt")
+    ood_data = torch.load(ood_dataset_path)
     ood_dataloader = DataLoader(ood_data, batch_size=args.train_batch_size, shuffle=True)
 
-    nt_test_data = torch.load('dataset/test/{}_test_out_of_domain.pt'.format(args.out_dataset))
+    nt_dataset_path = os.path.join(args.dir_dataset, 'test/{}_test_out_of_domain.pt'.format(args.out_dataset))
+    nt_test_data = torch.load(nt_dataset_path)
     nt_test_sampler = SequentialSampler(nt_test_data)
     nt_test_dataloader = DataLoader(nt_test_data, sampler=nt_test_sampler, batch_size=args.eval_batch_size)
 

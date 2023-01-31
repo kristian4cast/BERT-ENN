@@ -3,7 +3,7 @@ import os
 from utils import *
 import argparse
 from transformers import BertTokenizer
-from keras.preprocessing.sequence import pad_sequences
+from keras_preprocessing.sequence import pad_sequences
 from torch.utils.data import TensorDataset
 
 import warnings
@@ -21,7 +21,7 @@ def main():
     set_seed(args)
 
     outliers = 'wikitext2'
-    ood_list = ['snli', 'imdb', 'multi30k', 'wmt16', 'yelp']
+    ood_list = ['sst']#, 'imdb']#, 'multi30k', 'wmt16', 'yelp'] #'trec', 'snli', 
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 

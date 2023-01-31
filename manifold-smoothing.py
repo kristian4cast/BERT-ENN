@@ -6,7 +6,7 @@ import os
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import TensorDataset, RandomSampler
-from keras.preprocessing.sequence import pad_sequences
+from keras_preprocessing.sequence import pad_sequences
 from transformers  import BertTokenizer, BertForSequenceClassification
 from tqdm import trange
 from torch.autograd.gradcheck import zero_gradients
