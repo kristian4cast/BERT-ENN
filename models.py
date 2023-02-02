@@ -3,8 +3,22 @@ import transformers
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
-from torch.autograd.gradcheck import zero_gradients
 
+def iter_gradients(x):
+    if isinstance(x, Variable):
+        if x.requires_grad:
+            yield x.grad.data
+    else:
+        for elem in x:
+            for result in iter_gradients(elem):
+                yield result
+                    
+                    
+def zero_gradients(i):
+    for t in iter_gradients(i):
+        t.zero_()
+
+        
 class BERT_ENN(torch.nn.Module):
     def __init__(self, num_labels):
         super(BERT_ENN, self).__init__()
