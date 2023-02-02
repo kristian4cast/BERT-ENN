@@ -38,12 +38,12 @@ def main():
         if isinstance(test_sentences, np.ndarray):
             test_sentences = test_sentences.tolist()
         print(f"{test_sentences[:3]=}")
-        test_input_ids = tokenizer.encode_batch(
-                test_sentences,
+        test_input_ids = [tokenizer.encode_batch(
+                sentence,
                 add_special_tokens=True,
                 max_length=max_len,
                 truncation=True
-        )
+        ) for sentence in test_sentences]
         print(f"after tokenization: {test_input_ids=}")
 
         # Pad our input tokens
