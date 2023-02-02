@@ -38,7 +38,7 @@ def main():
         if isinstance(test_sentences, np.ndarray):
             test_sentences = test_sentences.tolist()
         print(f"{test_sentences[:3]=}")
-        test_input_ids = tokenizer.encode(
+        test_input_ids = tokenizer.encode_batch(
                 test_sentences,
                 add_special_tokens=True,
                 max_length=max_len,
