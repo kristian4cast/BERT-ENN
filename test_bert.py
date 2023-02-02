@@ -69,7 +69,7 @@ def main():
     print('Model: %s\t dir: %s'%(args.model,  dirname))
 
     if args.evaluate_benchmark == 'y':
-        ood_list = ['snli', 'imdb', 'multi30k', 'wmt16', 'yelp']
+        ood_list = ['imdb', 'yelp'] #['snli', 'imdb', 'multi30k', 'wmt16', 'yelp']
     else:
         ood_list = [args.out_dataset]
     print('ood_datasets: %s\n\n' %ood_list )

@@ -207,13 +207,15 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     ###  5. Yelp Reviews #
     if dataset == 'yelp':
-        df = pd.read_csv('./dataset/yelp_review_full_csv/test.csv', delimiter=',', header=None)
+        test_iter = torchtext.datasets.YelpReviewFull(root=cache_dir, split=('test'))
+        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
+        # df = pd.read_csv('./dataset/yelp_review_full_csv/test.csv', delimiter=',', header=None)
         train_sentences = None
         val_sentences = None
-        test_sentences = df.iloc[:, 1]
+        # test_sentences = df.iloc[:, 1]
         train_labels = None
         val_labels = None
-        test_labels = df.iloc[:, 0]
+        # test_labels = df.iloc[:, 0]
 
 
     return train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels
