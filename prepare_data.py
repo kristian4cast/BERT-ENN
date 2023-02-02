@@ -26,28 +26,38 @@ def main():
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
     def sentence_to_TensorDataset(test_sentences, test_labels, tokenizer=tokenizer, max_len=args.MAX_LEN):
-        test_input_ids = []
-        for sent in test_sentences:
-            encoded_sent = tokenizer.encode(
-                sent,
+        # test_input_ids = []
+        # for sent in test_sentences:
+        #     encoded_sent = tokenizer.encode(
+        #         sent,
+        #         add_special_tokens=True,
+        #         max_length=max_len,
+        #         truncation=True
+        #     )
+        #     test_input_ids.append(encoded_sent)
+        test_input_ids = tokenizer.encode(
+                test_sentences,
                 add_special_tokens=True,
                 max_length=max_len,
                 truncation=True
-            )
-            test_input_ids.append(encoded_sent)
+        )
+        print(f"after tokenization: {test_input_ids=}")
 
         # Pad our input tokens
         test_input_ids = pad_sequences(test_input_ids, maxlen=max_len, dtype="long", truncating="post",
                                        padding="post")
+        print(f"after padding: {test_input_ids=}")
         # Create attention masks
-        test_attention_masks = []
+        test_attention_masks = np.array(test_input_ids > 0, dtype=int)
+        # test_attention_masks = []
 
-        # Create a mask of 1s for each token followed by 0s for padding
-        for seq in test_input_ids:
-            seq_mask = [float(i > 0) for i in seq]
-            test_attention_masks.append(seq_mask)
+        # # Create a mask of 1s for each token followed by 0s for padding
+        # for seq in test_input_ids:
+        #     seq_mask = [float(i > 0) for i in seq]
+        #     test_attention_masks.append(seq_mask)
 
         # Convert all of our data into torch tensors, the required datatype for our model
+        print(f"attention mask: {test_attention_masks=}")
 
         test_inputs = torch.tensor(test_input_ids)
         test_labels = torch.tensor(test_labels)
