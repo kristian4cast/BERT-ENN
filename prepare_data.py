@@ -37,6 +37,7 @@ def main():
         #     test_input_ids.append(encoded_sent)
         if isinstance(test_sentences, np.ndarray):
             test_sentences = test_sentences.tolist()
+        print(f"{test_sentences=}")
         test_input_ids = tokenizer.encode(
                 test_sentences,
                 add_special_tokens=True,
