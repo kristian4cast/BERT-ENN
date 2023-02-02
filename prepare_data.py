@@ -21,7 +21,7 @@ def main():
     set_seed(args)
 
     outliers = 'wikitext2'
-    ood_list = ['sst']#, 'imdb']#, 'multi30k', 'wmt16', 'yelp'] #'trec', 'snli', 
+    ood_list = ['yelp', 'imdb']#, 'multi30k', 'wmt16', 'yelp'] #'trec', 'snli', 
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
