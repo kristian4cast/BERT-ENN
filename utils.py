@@ -6,6 +6,8 @@ import torch
 import torch.utils.data
 from torch import nn
 
+import sklearn
+
 
 import torchtext.datasets
 
@@ -14,12 +16,19 @@ from sklearn.metrics import precision_recall_curve, f1_score, auc, roc_curve, ro
 from sklearn.model_selection import train_test_split
 
 
-def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True):
+def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True, sentence_labels_order_inverted=False):
     sentences, labels  = np.array([[label, sentence] for label, sentence in torch_dataset_iterator]).T
+    if sentence_labels_order_inverted:
+        sentences, labels = labels, sentences
     if labels_to_int:
         labels = np.array(labels, dtype=int)
     print(f"{sentences[:3]=}, {labels[:3]=}")
     return labels, sentences
+
+
+def split_dataset(sentences, labels, percent_lower=0.7, random_state=42):
+    sentences_lower, sentences_upper, labels_lower, labels_upper = sklearn.model_selection.train_test_split(sentences, labels, train_size=percent_lower, random_state=random_state)
+    return sentences_lower, sentences_upper, labels_lower, labels_upper
 
 
 def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
@@ -97,11 +106,9 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     if dataset == 'sst':
         train_iter, valid_iter = torchtext.datasets.SST2(root='.data', split=('train', 'dev'))
-        train_iter = [x for x in train_iter]
-        test_iter, train_iter = train_iter[:2000], train_iter[2000:]
-        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
         val_labels, val_sentences = unpack_torchdatasets_subset(valid_iter)
-        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
+        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
+        train_sentences, test_sentences, train_labels, test_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
 
     ##  Training OOD dataset ##
 
@@ -150,18 +157,10 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     ###  2. IMDB #
     if dataset == 'imdb':
-        test_iter = torchtext.datasets.IMDB(root=cache_dir, split=('test'))
-        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
-
-        # df_test = pd.read_csv("./dataset/imdb/imdb.csv", delimiter=',', header=0)
-        # df_test = df_test.sample(5000)  # TODO
-        # df_test.sentiment = df_test.sentiment.map({'positive': 0, 'negative': 1})
-
-        train_sentences = None
-        val_sentences = None
-
-        train_labels = None
-        val_labels = None
+        test_iter = torchtext.datasets.IMDB(root=cache_dir, split=('train', 'test'))
+        test_sentences, test_labels = unpack_torchdatasets_subset(test_iter)
+        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
+        train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
 
     ###  3. Multi30K #
     if dataset == 'multi30k':
@@ -207,17 +206,13 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     ###  5. Yelp Reviews #
     if dataset == 'yelp':
-        test_iter = torchtext.datasets.YelpReviewFull(root=cache_dir, split=('test'))
-        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter)
-        # df = pd.read_csv('./dataset/yelp_review_full_csv/test.csv', delimiter=',', header=None)
-        train_sentences = None
-        val_sentences = None
-        # test_sentences = df.iloc[:, 1]
-        train_labels = None
-        val_labels = None
-        # test_labels = df.iloc[:, 0]
+        train_iter, test_iter = torchtext.datasets.YelpReviewFull(root=cache_dir, split=('train', 'test'))
+        test_sentences, test_labels = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
+        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True)
+        train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
 
-
+    print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
+    print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
     return train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels
 
 
