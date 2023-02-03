@@ -213,6 +213,8 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
     print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
+    print(f"{train_sentences[:3]=}, {val_sentences[:3]=}, {test_sentences[:3]=}, ")
+    print(f"{train_labels[:3]=}, {val_labels[:3]=}, {test_labels[:3]=}, ")
     return train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels
 
 
