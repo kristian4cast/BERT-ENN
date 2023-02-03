@@ -44,7 +44,7 @@ def main():
                 max_length=max_len,
                 truncation=True
         ) for sentence in test_sentences]
-        print(f"after tokenization: {test_input_ids=}")
+        print(f"after tokenization: {test_input_ids[:3]=}")
 
         # Pad our input tokens
         test_input_ids = pad_sequences(test_input_ids, maxlen=max_len, dtype="long", truncating="post",
