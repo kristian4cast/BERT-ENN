@@ -158,7 +158,7 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
     ###  2. IMDB #
     if dataset == 'imdb':
         train_iter, test_iter = torchtext.datasets.IMDB(root=cache_dir, split=('train', 'test'))
-        test_sentences, test_labels = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
+        test_sentences, test_labels = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=False)
         train_labels, train_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True)
         train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
 
