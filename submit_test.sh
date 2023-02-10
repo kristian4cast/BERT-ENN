@@ -17,7 +17,7 @@ conda deactivate
 conda activate bert-enn
 module list
 
-srun ./run_test.sh sst 0 base model_save/
+srun ./run_test.sh sst 0 mc-dropout model_save
 
 
 wait
