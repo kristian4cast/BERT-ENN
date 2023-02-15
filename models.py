@@ -76,7 +76,6 @@ class off_manifold_samples(object):
                 embedding = model.bert.get_input_embeddings()(input_ids)
 
         input_embedding = embedding.detach()
-        print(f"{input_embedding=}")
         # random init the adv samples
         if self.rand_init == 'y':
             input_embedding = input_embedding + torch.zeros_like(input_embedding).uniform_(-self.eps, self.eps)
