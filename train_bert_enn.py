@@ -21,7 +21,7 @@ def main():
     parser.add_argument("--eval_batch_size", default=64, type=int, help="Batch size for training.")
     parser.add_argument("--epochs", default=10, type=int, help="Number of epochs for training.")
     parser.add_argument("--seed", default=0, type=int, help="Number of epochs for training.")
-    parser.add_argument("--dataset", default='sst', type=str, help="dataset", choices = ['20news','trec','sst'])
+    parser.add_argument("--dataset", default='sst', type=str, help="dataset", choices = ['20news','trec','sst', 'debug'])
     parser.add_argument("--out_dataset", default='multi30k', type=str, help="outlier dataset")
 
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
@@ -89,7 +89,7 @@ def main():
 
     if args.dataset == '20news':
         num_labels = 20
-    elif args.dataset == 'sst':
+    elif args.dataset == 'sst' or args.dataset == 'debug':
         num_labels = 2
     elif args.dataset == 'trec':
         num_labels = 50

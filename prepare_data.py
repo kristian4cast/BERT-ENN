@@ -22,7 +22,7 @@ def main():
 
     outliers = 'wikitext2'
     ood_list = ['multi30k']#, 'wmt16', 'yelp'] #'trec', 'snli', 
-    in_list = []
+    in_list = ['debug']
     
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 

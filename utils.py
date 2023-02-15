@@ -12,12 +12,23 @@ import sklearn
 import torchtext.datasets
 
 from sklearn.datasets import fetch_20newsgroups
-from sklearn.metrics import precision_recall_curve, f1_score, auc, roc_curve, roc_auc_score, average_precision_score
+from sklearn.metrics import (
+    precision_recall_curve,
+    f1_score,
+    auc,
+    roc_curve,
+    roc_auc_score,
+    average_precision_score,
+)
 from sklearn.model_selection import train_test_split
 
 
-def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True, sentence_labels_order_inverted=False):
-    sentences, labels  = np.array([[label, sentence] for label, sentence in torch_dataset_iterator]).T
+def unpack_torchdatasets_subset(
+    torch_dataset_iterator, labels_to_int=True, sentence_labels_order_inverted=False
+):
+    sentences, labels = np.array(
+        [[label, sentence] for label, sentence in torch_dataset_iterator]
+    ).T
     if sentence_labels_order_inverted:
         sentences, labels = labels, sentences
     if labels_to_int:
@@ -27,7 +38,14 @@ def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True, sent
 
 
 def split_dataset(sentences, labels, percent_lower=0.7, random_state=42):
-    sentences_lower, sentences_upper, labels_lower, labels_upper = sklearn.model_selection.train_test_split(sentences, labels, train_size=percent_lower, random_state=random_state)
+    (
+        sentences_lower,
+        sentences_upper,
+        labels_lower,
+        labels_upper,
+    ) = sklearn.model_selection.train_test_split(
+        sentences, labels, train_size=percent_lower, random_state=random_state
+    )
     return sentences_lower, sentences_upper, labels_lower, labels_upper
 
 
@@ -42,13 +60,17 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     ##  Training Datasets: 20news, trec, sst  ##
 
-    if dataset == '20news':
+    if dataset == "20news":
         VALIDATION_SPLIT = 0.8
-        newsgroups_train = fetch_20newsgroups('dataset/20news', subset='train', shuffle=True, random_state=0)
+        newsgroups_train = fetch_20newsgroups(
+            "dataset/20news", subset="train", shuffle=True, random_state=0
+        )
         print(newsgroups_train.target_names)
         print(len(newsgroups_train.data))
 
-        newsgroups_test = fetch_20newsgroups('dataset/20news', subset='test', shuffle=False)
+        newsgroups_test = fetch_20newsgroups(
+            "dataset/20news", subset="test", shuffle=False
+        )
 
         print(len(newsgroups_test.data))
 
@@ -61,32 +83,37 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
         val_labels = newsgroups_train.target[train_len:]
         test_labels = newsgroups_test.target
 
-    if dataset == 'trec':
+    if dataset == "trec":
         # set up fields
         # TEXT = torchtext.data.Field(pad_first=True, lower=True)
         # LABEL = torchtext.data.Field(sequential=False)
 
         # make splits for data
-        train, test = TREC(split=('train', 'test'))
+        train, test = TREC(split=("train", "test"))
         # train, test = torchtext.datasets.TREC.splits(TEXT, LABEL, fine_grained=True)
 
         train_text = []
         train_label = []
         for example in train.examples:
-            train_text.append(' '.join(example.text))
+            train_text.append(" ".join(example.text))
             train_label.append(example.label)
-        df_train = pd.DataFrame(columns=['text', 'label'])
+        df_train = pd.DataFrame(columns=["text", "label"])
         df_train.text = train_text
         df_train.label = train_label
 
-        X_train, X_val, y_train, y_val = train_test_split(df_train.text, df_train.label, test_size=0.2,
-                                                          random_state=42, stratify=df_train.label)
+        X_train, X_val, y_train, y_val = train_test_split(
+            df_train.text,
+            df_train.label,
+            test_size=0.2,
+            random_state=42,
+            stratify=df_train.label,
+        )
         test_text = []
         test_label = []
         for example in test.examples:
-            test_text.append(' '.join(example.text))
+            test_text.append(" ".join(example.text))
             test_label.append(example.label)
-        df_test = pd.DataFrame(columns=['text', 'label'])
+        df_test = pd.DataFrame(columns=["text", "label"])
         df_test.text = test_text
         df_test.label = test_label
 
@@ -98,23 +125,54 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
         test_labels = df_test.label.values
 
         from sklearn.preprocessing import LabelEncoder
+
         le = LabelEncoder()
         le.fit(train_labels)
         train_labels = le.transform(train_labels)
         val_labels = le.transform(val_labels)
-        test_labels =le.transform(test_labels)
+        test_labels = le.transform(test_labels)
 
-    if dataset == 'sst':
-        train_iter, valid_iter = torchtext.datasets.SST2(root='.data', split=('train', 'dev'))
+    if dataset == "sst":
+        train_iter, valid_iter = torchtext.datasets.SST2(
+            root=".data", split=("train", "dev")
+        )
         val_labels, val_sentences = unpack_torchdatasets_subset(valid_iter)
         train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
-        train_sentences, test_sentences, train_labels, test_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
+        train_sentences, test_sentences, train_labels, test_labels = split_dataset(
+            train_sentences, train_labels, percent_lower=0.7
+        )
+
+    if dataset == "debug":
+        # used for debugging with quick access due to small size
+        train_iter, valid_iter = torchtext.datasets.SST2(
+            root=".data", split=("train", "dev")
+        )
+        val_labels, val_sentences = unpack_torchdatasets_subset(valid_iter)
+        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter)
+        train_sentences, test_sentences, train_labels, test_labels = split_dataset(
+            train_sentences, train_labels, percent_lower=0.7
+        )
+        (
+            train_sentences,
+            test_sentences,
+            train_labels,
+            test_labels,
+            val_labels,
+            val_sentences,
+        ) = (
+            train_sentences[:200],
+            test_sentences[:200],
+            train_labels[:200],
+            test_labels[:200],
+            val_labels[:200],
+            val_sentences[:200],
+        )
 
     ##  Training OOD dataset ##
 
-    if dataset == 'wikitext2':
-        file_path = './dataset/wikitext_reformatted/wikitext2_sentences'
-        with open(file_path, 'r') as read_file:
+    if dataset == "wikitext2":
+        file_path = "./dataset/wikitext_reformatted/wikitext2_sentences"
+        with open(file_path, "r") as read_file:
             x_temp = read_file.readlines()
             x_all = []
             for x in x_temp:
@@ -132,21 +190,23 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
     ##  Testing OOD datasets ##
 
     ###  1. SNLI #
-    if dataset == 'snli':
+    if dataset == "snli":
         TEXT_snli = torchtext.data.Field(pad_first=True, lower=True)
         LABEL_snli = torchtext.data.Field(sequential=False)
 
-        train_snli, val_snli, test_snli = torchtext.datasets.SNLI.splits(TEXT_snli, LABEL_snli)
+        train_snli, val_snli, test_snli = torchtext.datasets.SNLI.splits(
+            TEXT_snli, LABEL_snli
+        )
         all_labels = []
         all_hypotheis = []
         for example in test_snli.examples:
             all_labels.append(example.label)
-            all_hypotheis.append(' '.join(example.hypothesis))
+            all_hypotheis.append(" ".join(example.hypothesis))
 
-        df = pd.DataFrame(columns=['hypotheis', 'label'])
+        df = pd.DataFrame(columns=["hypotheis", "label"])
         df.label = all_labels
         df.hypotheis = all_hypotheis
-        df.label = df.label.map({'neutral': 1, 'entailment': 0, 'contradiction': 2})
+        df.label = df.label.map({"neutral": 1, "entailment": 0, "contradiction": 2})
 
         train_sentences = None
         val_sentences = None
@@ -156,38 +216,53 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
         test_labels = df.label
 
     ###  2. IMDB #
-    if dataset == 'imdb':
-        train_iter, test_iter = torchtext.datasets.IMDB(root=cache_dir, split=('train', 'test'))
-        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
-        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True)
-        train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
+    if dataset == "imdb":
+        train_iter, test_iter = torchtext.datasets.IMDB(
+            root=cache_dir, split=("train", "test")
+        )
+        test_labels, test_sentences = unpack_torchdatasets_subset(
+            test_iter, sentence_labels_order_inverted=True
+        )
+        train_labels, train_sentences = unpack_torchdatasets_subset(
+            train_iter, sentence_labels_order_inverted=True
+        )
+        train_sentences, val_sentences, train_labels, val_labels = split_dataset(
+            train_sentences, train_labels, percent_lower=0.7
+        )
 
     ###  3. Multi30K #
-    if dataset == 'multi30k':
-        train_iter, val_iter, test_iter = torchtext.datasets.Multi30k(root=cache_dir, split=('train', 'valid', 'test'))
+    if dataset == "multi30k":
+        train_iter, val_iter, test_iter = torchtext.datasets.Multi30k(
+            root=cache_dir, split=("train", "valid", "test")
+        )
         # TODO: test iterator is broken
-        #test_labels, test_sentences = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
-        test_labels, test_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True, labels_to_int=False)
-        #train_sentences, test_sentences, train_labels, test_labels = split_dataset(train_sentences, train_labels, percent_lower=0.8)
-        #val_labels, val_sentences = unpack_torchdatasets_subset(val_iter, sentence_labels_order_inverted=True, labels_to_int=False)
+        # test_labels, test_sentences = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
+        test_labels, test_sentences = unpack_torchdatasets_subset(
+            train_iter, sentence_labels_order_inverted=True, labels_to_int=False
+        )
+        # train_sentences, test_sentences, train_labels, test_labels = split_dataset(train_sentences, train_labels, percent_lower=0.8)
+        # val_labels, val_sentences = unpack_torchdatasets_subset(val_iter, sentence_labels_order_inverted=True, labels_to_int=False)
         test_labels = np.zeros(np.shape(test_sentences))
 
         train_labels = None
         train_sentences = None
         val_labels = None
         val_sentences = None
-        
+
     ###  4. WMT16  #
-    if dataset == 'wmt16':
+    if dataset == "wmt16":
         TEXT_wmt16 = torchtext.data.Field(pad_first=True, lower=True)
-        wmt16_data = torchtext.data.TabularDataset(path='./dataset/wmt16/wmt16_sentences',
-                                         format='csv', fields=[('text', TEXT_wmt16)])
+        wmt16_data = torchtext.data.TabularDataset(
+            path="./dataset/wmt16/wmt16_sentences",
+            format="csv",
+            fields=[("text", TEXT_wmt16)],
+        )
 
         all_text = []
         for example in wmt16_data.examples:
-            all_text.append(' '.join(example.text))
+            all_text.append(" ".join(example.text))
 
-        df = pd.DataFrame(columns=['text', 'label'])
+        df = pd.DataFrame(columns=["text", "label"])
         df.text = all_text
         df.label = 0
 
@@ -199,23 +274,41 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
         test_labels = df.label
 
     ###  5. Yelp Reviews #
-    if dataset == 'yelp':
-        train_iter, test_iter = torchtext.datasets.YelpReviewFull(root=cache_dir, split=('train', 'test'))
-        test_labels, test_sentences = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
-        train_labels, train_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True)
-        train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
+    if dataset == "yelp":
+        train_iter, test_iter = torchtext.datasets.YelpReviewFull(
+            root=cache_dir, split=("train", "test")
+        )
+        test_labels, test_sentences = unpack_torchdatasets_subset(
+            test_iter, sentence_labels_order_inverted=True
+        )
+        train_labels, train_sentences = unpack_torchdatasets_subset(
+            train_iter, sentence_labels_order_inverted=True
+        )
+        train_sentences, val_sentences, train_labels, val_labels = split_dataset(
+            train_sentences, train_labels, percent_lower=0.7
+        )
 
-    #print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
-    #print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
-    #print(f"{train_sentences[:3]=}, {val_sentences[:3]=}, {test_sentences[:3]=}, ")
-    #print(f"{train_labels[:3]=}, {val_labels[:3]=}, {test_labels[:3]=}, ")
-    return train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels
+    # print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
+    # print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
+    # print(f"{train_sentences[:3]=}, {val_sentences[:3]=}, {test_sentences[:3]=}, ")
+    # print(f"{train_labels[:3]=}, {val_labels[:3]=}, {test_labels[:3]=}, ")
+    return (
+        train_sentences,
+        val_sentences,
+        test_sentences,
+        train_labels,
+        val_labels,
+        test_labels,
+    )
 
 
 def one_hot_tensor(y_batch_tensor, num_classes, device):
-    y_tensor = torch.FloatTensor(y_batch_tensor.size(0), num_classes).fill_(0).to(device)
+    y_tensor = (
+        torch.FloatTensor(y_batch_tensor.size(0), num_classes).fill_(0).to(device)
+    )
     y_tensor[np.arange(len(y_batch_tensor)), y_batch_tensor] = 1.0
     return y_tensor
+
 
 # Function to calculate the accuracy of our predictions vs labels
 def accurate_nb(preds, labels):
@@ -239,8 +332,7 @@ def cos_dist(x, y):
     ## cosine distance function
     cos = nn.CosineSimilarity(dim=1, eps=1e-6)
     batch_size = x.size(0)
-    c = torch.clamp(1 - cos(x.view(batch_size, -1), y.view(batch_size, -1)),
-                    min=0)
+    c = torch.clamp(1 - cos(x.view(batch_size, -1), y.view(batch_size, -1)), min=0)
     return c.mean()
 
 
@@ -258,12 +350,14 @@ def getDisn(alpha):
         diss += blf[:, i] * sum(score_j_bal) / (sum(score_j) + 1e-8)
     return diss
 
+
 # calculate entropy
 def cal_entropy(p):
     if type(p) == torch.Tensor:
         return (-p * torch.log(p + 1e-8)).sum(1)
     else:
         return (-p * np.log(p + 1e-8)).sum(1)
+
 
 # PR ROC curve
 def get_pr_roc(normal_score, anormal_score):
@@ -274,7 +368,7 @@ def get_pr_roc(normal_score, anormal_score):
         anormal_score = anormal_score.iloc[0]
 
     truth = np.zeros((len(normal_score) + len(anormal_score)))
-    truth[len(normal_score):] = 1
+    truth[len(normal_score) :] = 1
     score = np.concatenate([normal_score, anormal_score])
 
     fpr, tpr, _ = roc_curve(truth, score, drop_intermediate=False)
@@ -296,26 +390,28 @@ def stable_cumsum(arr, rtol=1e-05, atol=1e-08):
     out = np.cumsum(arr, dtype=np.float64)
     expected = np.sum(arr, dtype=np.float64)
     if not np.allclose(out[-1], expected, rtol=rtol, atol=atol):
-        raise RuntimeError('cumsum was found to be unstable: '
-                           'its last element does not correspond to sum')
+        raise RuntimeError(
+            "cumsum was found to be unstable: "
+            "its last element does not correspond to sum"
+        )
     return out
 
 
-def fpr_and_fdr_at_recall(y_true, y_score, recall_level= 0.95,
-                          pos_label=None):
+def fpr_and_fdr_at_recall(y_true, y_score, recall_level=0.95, pos_label=None):
     classes = np.unique(y_true)
-    if (pos_label is None and
-            not (np.array_equal(classes, [0, 1]) or
-                     np.array_equal(classes, [-1, 1]) or
-                     np.array_equal(classes, [0]) or
-                     np.array_equal(classes, [-1]) or
-                     np.array_equal(classes, [1]))):
+    if pos_label is None and not (
+        np.array_equal(classes, [0, 1])
+        or np.array_equal(classes, [-1, 1])
+        or np.array_equal(classes, [0])
+        or np.array_equal(classes, [-1])
+        or np.array_equal(classes, [1])
+    ):
         raise ValueError("Data is not binary and pos_label is not specified")
     elif pos_label is None:
-        pos_label = 1.
+        pos_label = 1.0
 
     # make y_true a boolean vector
-    y_true = (y_true == pos_label)
+    y_true = y_true == pos_label
 
     # sort scores and corresponding truth values
     desc_score_indices = np.argsort(y_score, kind="mergesort")[::-1]
@@ -330,32 +426,42 @@ def fpr_and_fdr_at_recall(y_true, y_score, recall_level= 0.95,
 
     # accumulate the true positives with decreasing threshold
     tps = stable_cumsum(y_true)[threshold_idxs]
-    fps = 1 + threshold_idxs - tps      # add one because of zero-based indexing
+    fps = 1 + threshold_idxs - tps  # add one because of zero-based indexing
 
     thresholds = y_score[threshold_idxs]
 
     recall = tps / tps[-1]
 
     last_ind = tps.searchsorted(tps[-1])
-    sl = slice(last_ind, None, -1)      # [last_ind::-1]
-    recall, fps, tps, thresholds = np.r_[recall[sl], 1], np.r_[fps[sl], 0], np.r_[tps[sl], 0], thresholds[sl]
+    sl = slice(last_ind, None, -1)  # [last_ind::-1]
+    recall, fps, tps, thresholds = (
+        np.r_[recall[sl], 1],
+        np.r_[fps[sl], 0],
+        np.r_[tps[sl], 0],
+        thresholds[sl],
+    )
 
     cutoff = np.argmin(np.abs(recall - recall_level))
 
-    return fps[cutoff] / (np.sum(np.logical_not(y_true))), fps[cutoff]/(fps[cutoff] + tps[cutoff])
+    return fps[cutoff] / (np.sum(np.logical_not(y_true))), fps[cutoff] / (
+        fps[cutoff] + tps[cutoff]
+    )
 
-def get_performance(pos, neg, expected_ap=1 / (1 + 10.), method_name='Ours', recall_level=0.9):
-    '''
+
+def get_performance(
+    pos, neg, expected_ap=1 / (1 + 10.0), method_name="Ours", recall_level=0.9
+):
+    """
     :param pos: 1's class, class to detect, outliers, or wrongly predicted
     example scores from the baseline
     :param neg: 0's class scores generated by the baseline
     :param expected_ap: this is changed from the default for failure detection
-    '''
+    """
     pos = np.array(pos).reshape((-1, 1))
     neg = np.array(neg).reshape((-1, 1))
     examples = np.squeeze(np.vstack((pos, neg)))
     labels = np.zeros(len(examples), dtype=np.int32)
-    labels[:len(pos)] += 1
+    labels[: len(pos)] += 1
 
     auroc = roc_auc_score(labels, examples)
     aupr = average_precision_score(labels, examples)
@@ -368,4 +474,3 @@ def get_performance(pos, neg, expected_ap=1 / (1 + 10.), method_name='Ours', rec
     # print('FDR{:d}:\t\t\t{:.2f}'.format(int(100 * recall_level), 100 * fdr))
 
     return fpr, auroc, aupr
-

@@ -8,7 +8,10 @@ from torch.autograd import Variable
 def iter_gradients(x):
     if isinstance(x, Variable):
         if x.requires_grad:
-            yield x.grad.data
+            if x.grad is None:
+                yield None
+            else:
+                yield x.grad.data
     else:
         for elem in x:
             for result in iter_gradients(elem):
@@ -17,7 +20,8 @@ def iter_gradients(x):
                     
 def zero_gradients(i):
     for t in iter_gradients(i):
-        t.zero_()
+        if t is not None:
+            t.zero_()
 
         
 class BERT_ENN(torch.nn.Module):
@@ -72,6 +76,7 @@ class off_manifold_samples(object):
                 embedding = model.bert.get_input_embeddings()(input_ids)
 
         input_embedding = embedding.detach()
+        print(f"{input_embedding=}")
         # random init the adv samples
         if self.rand_init == 'y':
             input_embedding = input_embedding + torch.zeros_like(input_embedding).uniform_(-self.eps, self.eps)
