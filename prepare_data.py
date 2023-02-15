@@ -21,54 +21,36 @@ def main():
     set_seed(args)
 
     outliers = 'wikitext2'
-    ood_list = ['yelp', 'imdb']#, 'multi30k', 'wmt16', 'yelp'] #'trec', 'snli', 
-
+    ood_list = ['multi30k']#, 'wmt16', 'yelp'] #'trec', 'snli', 
+    in_list = []
+    
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
     def sentence_to_TensorDataset(test_sentences, test_labels, tokenizer=tokenizer, max_len=args.MAX_LEN):
-        # test_input_ids = []
-        # for sent in test_sentences:
-        #     encoded_sent = tokenizer.encode(
-        #         sent,
-        #         add_special_tokens=True,
-        #         max_length=max_len,
-        #         truncation=True
-        #     )
-        #     test_input_ids.append(encoded_sent)
         if isinstance(test_sentences, np.ndarray):
             test_sentences = test_sentences.tolist()
-        print(f"{test_sentences[:3]=}")
+        
         test_input_ids = [tokenizer.encode(
                 sentence,
                 add_special_tokens=True,
                 max_length=max_len,
                 truncation=True
         ) for sentence in test_sentences]
-        print(f"after tokenization: {test_input_ids[:3]=}")
-
+        
         # Pad our input tokens
         test_input_ids = pad_sequences(test_input_ids, maxlen=max_len, dtype="long", truncating="post",
                                        padding="post")
         print(f"after padding: {test_input_ids=}")
         # Create attention masks
         test_attention_masks = np.array(test_input_ids > 0, dtype=int)
-        # test_attention_masks = []
-
-        # # Create a mask of 1s for each token followed by 0s for padding
-        # for seq in test_input_ids:
-        #     seq_mask = [float(i > 0) for i in seq]
-        #     test_attention_masks.append(seq_mask)
-
-        # Convert all of our data into torch tensors, the required datatype for our model
-        print(f"attention mask: {test_attention_masks=}")
-
+        
         test_inputs = torch.tensor(test_input_ids)
         test_labels = torch.tensor(test_labels)
         test_masks = torch.tensor(test_attention_masks)
 
         return TensorDataset(test_inputs, test_masks, test_labels)
 
-    for in_dataset in ood_list:
+    for in_dataset in in_list:
         print('\nIn_dataset: %s'%in_dataset)
         train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels = load_dataset(in_dataset)
 
@@ -93,14 +75,14 @@ def main():
 
         print('\n\nNow build testing OOD datasets ...')
 
-        for ood_dataset in ood_list:
-            print('\n ood_dataset: %s'%ood_dataset)
-            _, _, nt_test_sentences, _, _, nt_test_labels = load_dataset(ood_dataset)
-            nt_test_data =  sentence_to_TensorDataset(nt_test_sentences, nt_test_labels)
+    for ood_dataset in ood_list:
+        print('\n ood_dataset: %s'%ood_dataset)
+        _, _, nt_test_sentences, _, _, nt_test_labels = load_dataset(ood_dataset)
+        nt_test_data =  sentence_to_TensorDataset(nt_test_sentences, nt_test_labels)
 
-            ood_path = 'dataset/test/{}_test_out_of_domain.pt'.format(ood_dataset)
-            torch.save(nt_test_data, ood_path)
-            print('save OOD dataset %s to %s'%(ood_dataset, ood_path))
+        ood_path = 'dataset/test/{}_test_out_of_domain.pt'.format(ood_dataset)
+        torch.save(nt_test_data, ood_path)
+        print('save OOD dataset %s to %s'%(ood_dataset, ood_path))
 
 
     print('\n\nNow build training outliers ...')

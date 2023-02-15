@@ -22,7 +22,7 @@ def unpack_torchdatasets_subset(torch_dataset_iterator, labels_to_int=True, sent
         sentences, labels = labels, sentences
     if labels_to_int:
         labels = np.array(labels, dtype=int)
-    print(f"{sentences[:3]=}, {labels[:3]=}")
+    print(f"unpacking dataset: {sentences[:3]=}, {labels[:3]=}")
     return labels, sentences
 
 
@@ -164,25 +164,19 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
 
     ###  3. Multi30K #
     if dataset == 'multi30k':
-        TEXT_m30k = torchtext.data.Field(pad_first=True, lower=True)
-        m30k_data = torchtext.data.TabularDataset(path='./dataset/multi30k/train.txt',
-                                        format='csv', fields=[('text', TEXT_m30k)])
+        train_iter, val_iter, test_iter = torchtext.datasets.Multi30k(root=cache_dir, split=('train', 'valid', 'test'))
+        # TODO: test iterator is broken
+        #test_labels, test_sentences = unpack_torchdatasets_subset(test_iter, sentence_labels_order_inverted=True)
+        test_labels, test_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True, labels_to_int=False)
+        #train_sentences, test_sentences, train_labels, test_labels = split_dataset(train_sentences, train_labels, percent_lower=0.8)
+        #val_labels, val_sentences = unpack_torchdatasets_subset(val_iter, sentence_labels_order_inverted=True, labels_to_int=False)
+        test_labels = np.zeros(np.shape(test_sentences))
 
-        all_text = []
-        for example in m30k_data.examples:
-            all_text.append(' '.join(example.text))
-
-        df = pd.DataFrame(columns=['text', 'label'])
-        df.text = all_text
-        df.label = 0
-
-        train_sentences = None
-        val_sentences = None
-        test_sentences = df.text
         train_labels = None
+        train_sentences = None
         val_labels = None
-        test_labels = df.label
-
+        val_sentences = None
+        
     ###  4. WMT16  #
     if dataset == 'wmt16':
         TEXT_wmt16 = torchtext.data.Field(pad_first=True, lower=True)
@@ -211,10 +205,10 @@ def load_dataset(dataset, cache_dir="~/.torchtext/cache"):
         train_labels, train_sentences = unpack_torchdatasets_subset(train_iter, sentence_labels_order_inverted=True)
         train_sentences, val_sentences, train_labels, val_labels = split_dataset(train_sentences, train_labels, percent_lower=0.7)
 
-    print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
-    print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
-    print(f"{train_sentences[:3]=}, {val_sentences[:3]=}, {test_sentences[:3]=}, ")
-    print(f"{train_labels[:3]=}, {val_labels[:3]=}, {test_labels[:3]=}, ")
+    #print(f"{np.shape(train_sentences)=}, {np.shape(val_sentences)=}, {np.shape(test_sentences)=}, ")
+    #print(f"{np.shape(train_labels)=}, {np.shape(val_labels)=}, {np.shape(test_labels)=}, ")
+    #print(f"{train_sentences[:3]=}, {val_sentences[:3]=}, {test_sentences[:3]=}, ")
+    #print(f"{train_labels[:3]=}, {val_labels[:3]=}, {test_labels[:3]=}, ")
     return train_sentences, val_sentences, test_sentences, train_labels, val_labels, test_labels
 
 

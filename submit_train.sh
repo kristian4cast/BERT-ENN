@@ -4,7 +4,7 @@
 #SBATCH --output=logs/gpu-out.%j
 #SBATCH --error=logs/gpu-err.%j
 #SBATCH --time=02:00:00
-#SBATCH --partition=develbooster
+#SBATCH --partition=develgpus
 #SBATCH --gres=gpu:4
 
 module purge

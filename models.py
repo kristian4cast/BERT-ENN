@@ -3,6 +3,7 @@ import transformers
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
+from torch.autograd import Variable
 
 def iter_gradients(x):
     if isinstance(x, Variable):
