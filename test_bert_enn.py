@@ -162,7 +162,7 @@ def main():
     RECALL_LEVEL = args.recall_level
 
     if args.evaluate_benchmark == 'y':
-        ood_list = ['snli','imdb', 'multi30k', 'wmt16', 'yelp' ]
+        ood_list = ['imdb', 'multi30k', 'yelp' ] #'snli', 'wmt16', 
     else:
         ood_list = [args.out_dataset]
 
